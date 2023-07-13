@@ -1,0 +1,16 @@
+Package: snowquery
+Title: Query 'Snowflake' Databases with 'SQL'
+Version: 0.0.1
+Authors@R: 
+    person("Dani", "Mermelstein", , "dmermelstein@hey.com", role = c("aut", "cre", "cph"))
+Maintainer: Dani Mermelstein <dmermelstein@hey.com>
+Description: A wrapper allowing 'SQL' queries to be run on a 'Snowflake' instance directly from an 'R' script, by using the 'snowflake-connector-python' package in the background.
+URL: https://github.com/mermelstein/snowquery
+BugReports: https://github.com/mermelstein/snowquery/issues
+Imports:
+  reticulate,
+  yaml
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+License: GPL (>= 3)
