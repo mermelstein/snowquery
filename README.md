@@ -40,7 +40,7 @@ pip install "snowflake-connector-python[pandas]"
 ```
 
 You will also need to have your Snowflake credentials in a YAML file called `snowquery_creds.yaml`. The file should be located in the
-root directory of your machine and should have the following format (remember to add an extra empty line at the end of the file):
+root directory of your machine and should have the following format:
 
 ```yaml
 ---
@@ -51,6 +51,7 @@ snowflake:
     username: 'your_username'
     password: 'your_password'
     role: 'your_role'
+
 ```
 
 The main function of this package looks for that file at this location: `~/snowquery_creds.yaml`. **If it is in any other location it will not work.** If the package cannot locate the file you will receive an error like: `cannot open file '/expected/path/to/file/snowquery_creds.yaml': No such file or directory`.z
