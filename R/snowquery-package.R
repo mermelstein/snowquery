@@ -15,6 +15,7 @@
 #'     username: 'your_username'
 #'     password: 'your_password'
 #'     role: 'your_role'
+#' 
 #' ```
 #'
 #' Replace the values in the YAML file with your own Snowflake credentials.

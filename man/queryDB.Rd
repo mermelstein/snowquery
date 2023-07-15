@@ -4,7 +4,18 @@
 \alias{queryDB}
 \title{Query a Snowflake database}
 \usage{
-queryDB(query)
+queryDB(
+  query,
+  db_type,
+  username = NULL,
+  password = NULL,
+  host = NULL,
+  port = NULL,
+  database = NULL,
+  warehouse = NULL,
+  account = NULL,
+  role = NULL
+)
 }
 \arguments{
 \item{query}{A string of the SQL query to execute}
