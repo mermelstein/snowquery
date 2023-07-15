@@ -29,6 +29,15 @@ queryDB <- function(
   account = NULL,
   role = NULL)
 {
+
+  check_null <- function(var, default) {
+    if (is.null(var)) {
+      default
+    } else {
+      var
+    }
+  }
+  
   # Check if db_type is provided
   if (missing(db_type)) {
     stop(paste0("db_type is missing. Expected 'postgres' or 'snowflake'.\n",
@@ -48,12 +57,12 @@ queryDB <- function(
     # Import the snowflake.connector module from the snowflake-connector-python package
     snowflake <- import("snowflake.connector")
 
-    username_ <- ifelse(is.null(username), snowquery_creds$snowflake$user, username)
-    password_ <- ifelse(is.null(password), snowquery_creds$snowflake$password, password)
-    account_ <- ifelse(is.null(account), snowquery_creds$snowflake$account, account)
-    database_ <- ifelse(is.null(database), snowquery_creds$snowflake$database, database)
-    warehouse_ <- ifelse(is.null(warehouse), snowquery_creds$snowflake$warehouse, warehouse)
-    role_ <- ifelse(is.null(role), snowquery_creds$snowflake$role, role)
+    username_ <- check_null(username, check_null(snowquery_creds$snowflake$user, NULL))
+    password_ <- check_null(password, check_null(snowquery_creds$snowflake$password, NULL))
+    account_ <- check_null(account, check_null(snowquery_creds$snowflake$account, NULL))
+    database_ <- check_null(database, check_null(snowquery_creds$snowflake$database, NULL))
+    warehouse_ <- check_null(warehouse, check_null(snowquery_creds$snowflake$warehouse, NULL))
+    role_ <- check_null(role, check_null(snowquery_creds$snowflake$role, NULL))
     # Check if any credentials are missing
     if (is.null(username_) || is.null(password_) || is.null(account_) || is.null(database_) || is.null(warehouse_) || is.null(role_)) {
       # Get the names of the missing credential variables
@@ -92,11 +101,11 @@ queryDB <- function(
 
   } else if (tolower(db_type) == "postgres") {
     # Check if credentials are provided manually by user
-    database_ <- ifelse(is.null(database), snowquery_creds$postgres$database, database)
-    username_ <- ifelse(is.null(username), snowquery_creds$postgres$username, username)
-    password_ <- ifelse(is.null(password), snowquery_creds$postgres$password, password)
-    port_ <- ifelse(is.null(port), snowquery_creds$postgres$port, port)
-    host_ <- ifelse(is.null(host), snowquery_creds$postgres$host, host)
+    database_ <- check_null(database, check_null(snowquery_creds$postgres$database, NULL))
+    username_ <- check_null(username, check_null(snowquery_creds$postgres$username, NULL))
+    password_ <- check_null(password, check_null(snowquery_creds$postgres$password, NULL))
+    port_ <- check_null(port, check_null(snowquery_creds$postgres$port, NULL))
+    host_ <- check_null(host, check_null(snowquery_creds$postgres$host, NULL))
     # Check if any credentials are missing
     if (is.null(username_) || is.null(password_) || is.null(host_) || is.null(database_) || is.null(port_)) {
       # Get the names of the missing credential variables
