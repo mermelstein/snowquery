@@ -48,32 +48,35 @@ queryDB <- function(
     # Import the snowflake.connector module from the snowflake-connector-python package
     snowflake <- import("snowflake.connector")
 
-    # Check if credentials are provided manually by user
-    if (is.null(username) || is.null(password) || is.null(account) || is.null(database) || is.null(warehouse) || is.null(role)) {
-      # Check if credentials are available in the credential file
-      if (is.null(snowquery_creds$snowflake$user) || is.null(snowquery_creds$snowflake$password) || is.null(snowquery_creds$snowflake$account) || is.null(snowquery_creds$snowflake$database) || is.null(snowquery_creds$snowflake$warehouse) || is.null(snowquery_creds$snowflake$role)) {
-        stop(paste0("Missing credentials for Snowflake. \n",
-        "Please pass in credentials to queryDB() or add them to the snowquery_creds.yaml file."))
-      } else {
-        # Use credentials in yaml file to build connection
-        con <- snowflake$connect(
-          user = snowquery_creds$snowflake$user,
-          password = snowquery_creds$snowflake$password,
-          account = snowquery_creds$snowflake$account,
-          database = snowquery_creds$snowflake$database,
-          warehouse = snowquery_creds$snowflake$warehouse,
-          role = snowquery_creds$snowflake$role
-        )
-      }
+    username_ <- ifelse(is.null(username), snowquery_creds$snowflake$user, username)
+    password_ <- ifelse(is.null(password), snowquery_creds$snowflake$password, password)
+    account_ <- ifelse(is.null(account), snowquery_creds$snowflake$account, account)
+    database_ <- ifelse(is.null(database), snowquery_creds$snowflake$database, database)
+    warehouse_ <- ifelse(is.null(warehouse), snowquery_creds$snowflake$warehouse, warehouse)
+    role_ <- ifelse(is.null(role), snowquery_creds$snowflake$role, role)
+    # Check if any credentials are missing
+    if (is.null(username_) || is.null(password_) || is.null(account_) || is.null(database_) || is.null(warehouse_) || is.null(role_)) {
+      # Get the names of the missing credential variables
+      missing_vars <- c()
+      if (is.null(username_)) missing_vars <- c(missing_vars, "username")
+      if (is.null(password_)) missing_vars <- c(missing_vars, "password")
+      if (is.null(account_)) missing_vars <- c(missing_vars, "account")
+      if (is.null(database_)) missing_vars <- c(missing_vars, "database")
+      if (is.null(warehouse_)) missing_vars <- c(missing_vars, "warehouse")
+      if (is.null(role_)) missing_vars <- c(missing_vars, "role")
+      # Error message if credentials are missing
+      stop(paste0("Missing credentials for Snowflake. \n",
+      "The following credential variable(s) are missing: ", paste(missing_vars, collapse = ", "), ".\n",
+      "Please pass in credentials to queryDB() or add them to the snowquery_creds.yaml file."))
     } else {
-      # Use credentials passed by user to build connection string
+      # Use available credentials to build connection string
       con <- snowflake$connect(
-        user = username,
-        password = password,
-        account = account,
-        database = database,
-        warehouse = warehouse,
-        role = role
+        user = username_,
+        password = password_,
+        account = account_,
+        database = database_,
+        warehouse = warehouse_,
+        role = role_
       )
     }
 
@@ -89,31 +92,33 @@ queryDB <- function(
 
   } else if (tolower(db_type) == "postgres") {
     # Check if credentials are provided manually by user
-    if (is.null(username) || is.null(password) || is.null(host) || is.null(port) || is.null(database)) {
-      # Check if credentials are available in the credential file
-      if (is.null(snowquery_creds$postgres$username) || is.null(snowquery_creds$postgres$password) || is.null(snowquery_creds$postgres$database) || is.null(snowquery_creds$postgres$host) || is.null(snowquery_creds$postgres$port)) {
-        stop(paste0("Missing credentials for Postgres. \n",
-        "Please pass in credentials to queryDB() or add them to the snowquery_creds.yaml file."))
-      } else {
-        # Use credentials in yaml file to build connection
-        con <- DBI::dbConnect(RPostgres::Postgres(),
-          dbname = snowquery_creds$postgres$database,
-          host = snowquery_creds$postgres$host,
-          port = snowquery_creds$postgres$port,
-          user = snowquery_creds$postgres$username,
-          password = snowquery_creds$postgres$password
-        )
-      }
+    database_ <- ifelse(is.null(database), snowquery_creds$postgres$database, database)
+    username_ <- ifelse(is.null(username), snowquery_creds$postgres$username, username)
+    password_ <- ifelse(is.null(password), snowquery_creds$postgres$password, password)
+    port_ <- ifelse(is.null(port), snowquery_creds$postgres$port, port)
+    host_ <- ifelse(is.null(host), snowquery_creds$postgres$host, host)
+    # Check if any credentials are missing
+    if (is.null(username_) || is.null(password_) || is.null(host_) || is.null(database_) || is.null(port_)) {
+      # Get the names of the missing credential variables
+      missing_vars <- c()
+      if (is.null(database_)) missing_vars <- c(missing_vars, "database")
+      if (is.null(username_)) missing_vars <- c(missing_vars, "username")
+      if (is.null(password_)) missing_vars <- c(missing_vars, "password")
+      if (is.null(port_)) missing_vars <- c(missing_vars, "port")
+      if (is.null(host_)) missing_vars <- c(missing_vars, "host")
+      # Error message if credentials are missing
+      stop(paste0("Missing credentials for Postgres. \n",
+      "The following credential variable(s) are missing: ", paste(missing_vars, collapse = ", "), ".\n",
+      "Please pass in credentials to queryDB() or add them to the snowquery_creds.yaml file."))
     } else {
-      # Use credentials passed by user to build connection string
+      # Use available credentials to build connection string
       con <- DBI::dbConnect(RPostgres::Postgres(),
-        user = username,
-        password = password,
-        account = account,
-        database = database,
-        warehouse = warehouse,
-        role = role
-      )
+          dbname = database_,
+          host = host_,
+          port = port_,
+          user = username_,
+          password = password_
+        )
     }
 
     # Run the SQL query
@@ -127,6 +132,6 @@ queryDB <- function(
 
   } else {
     stop(paste0("Invalid db_type '", db_type, "'. \n",
-    "Snowquery currently only supports 'snowflake' and 'postgres' databases."))
+    "Snowquery currently only supports 'snowflake' and 'postgres' database types."))
   }
 }
