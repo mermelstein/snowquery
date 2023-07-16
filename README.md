@@ -27,11 +27,11 @@ devtools::install_github("mermelstein/snowquery")
 
 ### Requirements for Use
 
-You must have a local python installation and the Snowflake python connector installed. If you need to install python you can do that with Homebrew from the terminal:
+You must have a local python installation and the Snowflake python connector installed. If you need to install python you can do that with [Homebrew](https://brew.sh/) from the terminal:
 
 ```bash
-# for example to install python 3.9 on MacOS
-brew install python@3.9
+# for example to install python 3.10 on MacOS
+brew install python@3.10
 ```
 
 If you need to install the Snowflake python connector, you can do that with the following command from the terminal:
@@ -80,4 +80,21 @@ or
 library(snowquery)
 
 queryDB("SELECT * FROM MY_AWESOME_TABLE")
+```
+
+or
+
+```R
+library(snowquery)
+# You can also pass in credentials manually
+result <- queryDB("SELECT * FROM my_table",
+                   db_type='snowflake',
+                   username='my_username',
+                   password='my_password',
+                   account='my_account',
+                   database='my_database',
+                   warehouse='my_warehouse',
+                   role='my_role',
+                   timeout=30)
+print(result)
 ```
