@@ -19,6 +19,24 @@ queryDB(
 }
 \arguments{
 \item{query}{A string of the SQL query to execute}
+
+\item{db_type}{The type of database to connect to (e.g. "snowflake")}
+
+\item{username}{The username to use for authentication}
+
+\item{password}{The password to use for authentication}
+
+\item{host}{The hostname or IP address of the database server}
+
+\item{port}{The port number to use for the database connection}
+
+\item{database}{The name of the database to connect to}
+
+\item{warehouse}{\href{https://www.snowflake.com/data-cloud-glossary/virtual-warehouse}{Snowflake} The name of the warehouse to use for the Snowflake connection}
+
+\item{account}{\href{https://docs.snowflake.com/en/user-guide/admin-account-identifier}{Snowflake} The name of the Snowflake account to connect to}
+
+\item{role}{\href{https://docs.snowflake.com/en/sql-reference/ddl-user-security}{Snowflake} The name of the role to use for the Snowflake connection}
 }
 \value{
 A data frame containing the results of the query
@@ -29,7 +47,19 @@ Run a SQL query on a Snowflake database (requires a \verb{~/snowquery_creds.yaml
 \examples{
 \dontrun{
 # Query the database and get a dataframe of results
-result <- queryDB("SELECT * FROM my_table")
+result <- queryDB("SELECT * FROM my_table", db_type='snowflake')
+print(result)
+}
+\dontrun{
+# You can also pass in credentials manually
+result <- queryDB("SELECT * FROM my_table",
+                   db_type='snowflake',
+                   username='my_username',
+                   password='my_password',
+                   account='my_account',
+                   database='my_database',
+                   warehouse='my_warehouse',
+                   role='my_role')
 print(result)
 }
 

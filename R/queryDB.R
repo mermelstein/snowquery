@@ -2,11 +2,32 @@
 #' @description Run a SQL query on a Snowflake database (requires a `~/snowquery_creds.yaml` file)
 #'
 #' @param query A string of the SQL query to execute
+#' @param db_type The type of database to connect to (e.g. "snowflake" or "postgres")
+#' @param username The username to use for authentication
+#' @param password The password to use for authentication
+#' @param host The hostname or IP address of the database server
+#' @param port The port number to use for the database connection
+#' @param database The name of the database to connect to
+#' @param warehouse [Snowflake](https://www.snowflake.com/data-cloud-glossary/virtual-warehouse) The name of the warehouse to use for the Snowflake connection
+#' @param account [Snowflake](https://docs.snowflake.com/en/user-guide/admin-account-identifier) The name of the Snowflake account to connect to
+#' @param role [Snowflake](https://docs.snowflake.com/en/sql-reference/ddl-user-security) The name of the role to use for the Snowflake connection
 #' @return A data frame containing the results of the query
 #' @examples
 #' \dontrun{
 #' # Query the database and get a dataframe of results
-#' result <- queryDB("SELECT * FROM my_table")
+#' result <- queryDB("SELECT * FROM my_table", db_type='snowflake')
+#' print(result)
+#' }
+#' \dontrun{
+#' # You can also pass in credentials manually
+#' result <- queryDB("SELECT * FROM my_table",
+#'                    db_type='snowflake',
+#'                    username='my_username',
+#'                    password='my_password',
+#'                    account='my_account',
+#'                    database='my_database',
+#'                    warehouse='my_warehouse',
+#'                    role='my_role')
 #' print(result)
 #' }
 #'
@@ -37,7 +58,7 @@ queryDB <- function(
       var
     }
   }
-  
+
   # Check if db_type is provided
   if (missing(db_type)) {
     stop(paste0("db_type is missing. Expected 'postgres' or 'snowflake'.\n",
