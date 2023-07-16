@@ -2,7 +2,7 @@
 % Please edit documentation in R/queryDB.R
 \name{queryDB}
 \alias{queryDB}
-\title{Query a Snowflake database}
+\title{Query a Snowflake or Postgres database}
 \usage{
 queryDB(
   query,
@@ -14,13 +14,14 @@ queryDB(
   database = NULL,
   warehouse = NULL,
   account = NULL,
-  role = NULL
+  role = NULL,
+  timeout = 15
 )
 }
 \arguments{
 \item{query}{A string of the SQL query to execute}
 
-\item{db_type}{The type of database to connect to (e.g. "snowflake")}
+\item{db_type}{The type of database to connect to (e.g. "snowflake" or "postgres")}
 
 \item{username}{The username to use for authentication}
 
@@ -37,12 +38,14 @@ queryDB(
 \item{account}{\href{https://docs.snowflake.com/en/user-guide/admin-account-identifier}{Snowflake} The name of the Snowflake account to connect to}
 
 \item{role}{\href{https://docs.snowflake.com/en/sql-reference/ddl-user-security}{Snowflake} The name of the role to use for the Snowflake connection}
+
+\item{timeout}{The number of seconds to wait for the database to connect successfully}
 }
 \value{
 A data frame containing the results of the query
 }
 \description{
-Run a SQL query on a Snowflake database (requires a \verb{~/snowquery_creds.yaml} file)
+Run a SQL query on a Snowflake or Postgres database (requires a \verb{~/snowquery_creds.yaml} file)
 }
 \examples{
 \dontrun{
@@ -59,7 +62,8 @@ result <- queryDB("SELECT * FROM my_table",
                    account='my_account',
                    database='my_database',
                    warehouse='my_warehouse',
-                   role='my_role')
+                   role='my_role',
+                   timeout=30)
 print(result)
 }
 

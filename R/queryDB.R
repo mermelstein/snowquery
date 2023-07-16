@@ -1,5 +1,5 @@
-#' @title Query a Snowflake database
-#' @description Run a SQL query on a Snowflake database (requires a `~/snowquery_creds.yaml` file)
+#' @title Query a Snowflake or Postgres database
+#' @description Run a SQL query on a Snowflake or Postgres database (requires a `~/snowquery_creds.yaml` file)
 #'
 #' @param query A string of the SQL query to execute
 #' @param db_type The type of database to connect to (e.g. "snowflake" or "postgres")
@@ -11,6 +11,7 @@
 #' @param warehouse [Snowflake](https://www.snowflake.com/data-cloud-glossary/virtual-warehouse) The name of the warehouse to use for the Snowflake connection
 #' @param account [Snowflake](https://docs.snowflake.com/en/user-guide/admin-account-identifier) The name of the Snowflake account to connect to
 #' @param role [Snowflake](https://docs.snowflake.com/en/sql-reference/ddl-user-security) The name of the role to use for the Snowflake connection
+#' @param timeout The number of seconds to wait for the database to connect successfully
 #' @return A data frame containing the results of the query
 #' @examples
 #' \dontrun{
@@ -27,7 +28,8 @@
 #'                    account='my_account',
 #'                    database='my_database',
 #'                    warehouse='my_warehouse',
-#'                    role='my_role')
+#'                    role='my_role',
+#'                    timeout=30)
 #' print(result)
 #' }
 #'
@@ -48,7 +50,8 @@ queryDB <- function(
   database = NULL,
   warehouse = NULL,
   account = NULL,
-  role = NULL)
+  role = NULL,
+  timeout = 15)
 {
 
   check_null <- function(var, default) {
@@ -106,7 +109,8 @@ queryDB <- function(
         account = account_,
         database = database_,
         warehouse = warehouse_,
-        role = role_
+        role = role_,
+        login_timeout = timeout # seconds
       )
     }
 
@@ -147,7 +151,8 @@ queryDB <- function(
           host = host_,
           port = port_,
           user = username_,
-          password = password_
+          password = password_,
+          connect_timeout = timeout # seconds
         )
     }
 
