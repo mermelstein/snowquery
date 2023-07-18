@@ -125,7 +125,7 @@ queryDB <- function(
       if (is.null(warehouse_)) missing_vars <- c(missing_vars, "warehouse")
       if (is.null(role_)) missing_vars <- c(missing_vars, "role")
       # Error message if credentials are missing
-      stop(paste0("Missing credentials for Snowflake. \n",
+      stop(paste0("Missing credentials for the Snowflake connection. \n",
       "The following credential variable(s) are missing: ", paste(missing_vars, collapse = ", "), ".\n",
       "Please pass in credentials to queryDB() or add them to the snowquery_creds.yaml file."))
     } else {
@@ -168,7 +168,7 @@ queryDB <- function(
       if (is.null(port_)) missing_vars <- c(missing_vars, "port")
       if (is.null(host_)) missing_vars <- c(missing_vars, "host")
       # Error message if credentials are missing
-      stop(paste0("Missing credentials for Postgres. \n",
+      stop(paste0("Missing credentials for the postgres connection. \n",
       "The following credential variable(s) are missing: ", paste(missing_vars, collapse = ", "), ".\n",
       "Please pass in credentials to queryDB() or add them to the snowquery_creds.yaml file."))
     } else {
