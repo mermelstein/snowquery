@@ -83,13 +83,30 @@ queryDB <- function(
   }
 
   if (tolower(db_type) == "snowflake") {
-    # Find the location of the Python executable and pass to use_python()
-    python_executable <- py_config()$python
-    use_python(python_executable)
+    tryCatch({
+      # Find the location of the Python executable and pass to use_python()
+      python_executable <- py_config()$python
+      use_python(python_executable)
+    }, error = function(e) {
+      stop(paste0("Failed to find the python executable. Please make sure python 3 is installed and accessible from your environment.\n",
+      "You can download Python 3 from https://www.python.org/downloads/ or via Homebrew if on MacOS. \n",
+      "After installing Python 3, make sure it is added to your system PATH. \n",
+      "Error message: ", e$message))
+    })
 
-    # Import the snowflake.connector module from the snowflake-connector-python package
-    snowflake <- import("snowflake.connector")
-
+    tryCatch({
+      # Import the snowflake.connector module from the snowflake-connector-python package
+      snowflake <- import("snowflake.connector")
+    }, error = function(e) {
+      # stop(paste0("Failed to import the snowflake.connector module. Please make sure it is installed and accessible from your environment. \n",
+      # "Try running the following command from your terminal or command line:\n\n",
+      # "pip install 'snowflake-connector-python[pandas]'\n\n",
+      # "Error message: ", e$message))
+      stop(paste0("Failed to find the python executable. Please make sure python 3 is installed and accessible from your environment.\n",
+      "You can download Python 3 from https://www.python.org/downloads/ or via Homebrew if on MacOS. \n",
+      "After installing Python 3, make sure it is added to your system PATH. \n",
+      "Error message: ", e$message))
+    })
     username_ <- check_null(username, check_null(conn_details$user, NULL))
     password_ <- check_null(password, check_null(conn_details$password, NULL))
     account_ <- check_null(account, check_null(conn_details$account, NULL))
