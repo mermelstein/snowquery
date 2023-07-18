@@ -2,6 +2,7 @@
 #' @description Run a SQL query on a Snowflake or Postgres database (requires a `~/snowquery_creds.yaml` file)
 #'
 #' @param query A string of the SQL query to execute
+#' @param conn_name The name of the connection to use in snowquery_creds.yaml (e.g. "my_snowflake_dwh")
 #' @param db_type The type of database to connect to (e.g. "snowflake" or "postgres")
 #' @param username The username to use for authentication
 #' @param password The password to use for authentication
@@ -16,7 +17,7 @@
 #' @examples
 #' \dontrun{
 #' # Query the database and get a dataframe of results
-#' result <- queryDB("SELECT * FROM my_table", db_type='snowflake')
+#' result <- queryDB("SELECT * FROM my_table", conn_name='my_snowflake_dwh')
 #' print(result)
 #' }
 #' \dontrun{
@@ -42,7 +43,8 @@
 #' @export
 queryDB <- function(
   query,
-  db_type,
+  conn_name = "default",
+  db_type = NULL,
   username = NULL,
   password = NULL,
   host = NULL,
@@ -62,16 +64,23 @@ queryDB <- function(
     }
   }
 
-  # Check if db_type is provided
-  if (missing(db_type)) {
-    stop(paste0("db_type is missing. Expected 'postgres' or 'snowflake'.\n",
-    "Please provide a db_type argument to queryDB(). \n",
-    "For example: queryDB('SELECT * FROM my_table', db_type = 'snowflake')"))
-  }
-
   # pull in the credential file
   snowquery_creds_filepath <- '~/snowquery_creds.yaml'
   snowquery_creds <- yaml::read_yaml(snowquery_creds_filepath,  fileEncoding = "UTF-8")
+
+  # Get the connection details from the snowquery_creds object
+  conn_details <- snowquery_creds[[conn_name]]
+
+  # Extract the db_type variable from the connection details
+  db_type <- check_null(db_type, check_null(conn_details$db_type, NULL))
+
+  # Check if db_type is provided
+  if (missing(db_type) || is.null(db_type)) {
+    stop(paste0("db_type is missing.\n",
+    "Please provide a database type to queryDB(). Expected values are 'snowflake' or 'postgres'.\n",
+    "You can add a db_type variable to the '", conn_name, "' connection in the snowquery_creds.yaml file or pass it in manually:\n",
+    "For example: queryDB('SELECT * FROM my_table', conn_name = 'snowflake', db_type = 'snowflake')"))
+  }
 
   if (tolower(db_type) == "snowflake") {
     # Find the location of the Python executable and pass to use_python()
@@ -81,12 +90,13 @@ queryDB <- function(
     # Import the snowflake.connector module from the snowflake-connector-python package
     snowflake <- import("snowflake.connector")
 
-    username_ <- check_null(username, check_null(snowquery_creds$snowflake$user, NULL))
-    password_ <- check_null(password, check_null(snowquery_creds$snowflake$password, NULL))
-    account_ <- check_null(account, check_null(snowquery_creds$snowflake$account, NULL))
-    database_ <- check_null(database, check_null(snowquery_creds$snowflake$database, NULL))
-    warehouse_ <- check_null(warehouse, check_null(snowquery_creds$snowflake$warehouse, NULL))
-    role_ <- check_null(role, check_null(snowquery_creds$snowflake$role, NULL))
+    username_ <- check_null(username, check_null(conn_details$user, NULL))
+    password_ <- check_null(password, check_null(conn_details$password, NULL))
+    account_ <- check_null(account, check_null(conn_details$account, NULL))
+    database_ <- check_null(database, check_null(conn_details$database, NULL))
+    warehouse_ <- check_null(warehouse, check_null(conn_details$warehouse, NULL))
+    role_ <- check_null(role, check_null(conn_details$role, NULL))
+
     # Check if any credentials are missing
     if (is.null(username_) || is.null(password_) || is.null(account_) || is.null(database_) || is.null(warehouse_) || is.null(role_)) {
       # Get the names of the missing credential variables
@@ -126,11 +136,11 @@ queryDB <- function(
 
   } else if (tolower(db_type) == "postgres") {
     # Check if credentials are provided manually by user
-    database_ <- check_null(database, check_null(snowquery_creds$postgres$database, NULL))
-    username_ <- check_null(username, check_null(snowquery_creds$postgres$username, NULL))
-    password_ <- check_null(password, check_null(snowquery_creds$postgres$password, NULL))
-    port_ <- check_null(port, check_null(snowquery_creds$postgres$port, NULL))
-    host_ <- check_null(host, check_null(snowquery_creds$postgres$host, NULL))
+    database_ <- check_null(database, check_null(conn_details$database, NULL))
+    username_ <- check_null(username, check_null(conn_details$username, NULL))
+    password_ <- check_null(password, check_null(conn_details$password, NULL))
+    port_ <- check_null(port, check_null(conn_details$port, NULL))
+    host_ <- check_null(host, check_null(conn_details$host, NULL))
     # Check if any credentials are missing
     if (is.null(username_) || is.null(password_) || is.null(host_) || is.null(database_) || is.null(port_)) {
       # Get the names of the missing credential variables

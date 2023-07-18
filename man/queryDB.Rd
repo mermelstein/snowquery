@@ -6,7 +6,8 @@
 \usage{
 queryDB(
   query,
-  db_type,
+  conn_name = "default",
+  db_type = NULL,
   username = NULL,
   password = NULL,
   host = NULL,
@@ -20,6 +21,8 @@ queryDB(
 }
 \arguments{
 \item{query}{A string of the SQL query to execute}
+
+\item{conn_name}{The name of the connection to use in snowquery_creds.yaml (e.g. "my_snowflake_dwh")}
 
 \item{db_type}{The type of database to connect to (e.g. "snowflake" or "postgres")}
 
@@ -50,7 +53,7 @@ Run a SQL query on a Snowflake or Postgres database (requires a \verb{~/snowquer
 \examples{
 \dontrun{
 # Query the database and get a dataframe of results
-result <- queryDB("SELECT * FROM my_table", db_type='snowflake')
+result <- queryDB("SELECT * FROM my_table", conn_name='my_snowflake_dwh')
 print(result)
 }
 \dontrun{
