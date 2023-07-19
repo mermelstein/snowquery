@@ -9,9 +9,9 @@
 #' @param host The hostname or IP address of the database server
 #' @param port The port number to use for the database connection
 #' @param database The name of the database to connect to
-#' @param warehouse [Snowflake](https://www.snowflake.com/data-cloud-glossary/virtual-warehouse) The name of the warehouse to use for the Snowflake connection
-#' @param account [Snowflake](https://docs.snowflake.com/en/user-guide/admin-account-identifier) The name of the Snowflake account to connect to
-#' @param role [Snowflake](https://docs.snowflake.com/en/sql-reference/ddl-user-security) The name of the role to use for the Snowflake connection
+#' @param warehouse [Snowflake](https://www.snowflake.com/data-cloud-glossary/virtual-warehouse/) The name of the warehouse to use for the Snowflake connection
+#' @param account [Snowflake](https://docs.snowflake.com/en/user-guide/admin-account-identifier/) The name of the Snowflake account to connect to
+#' @param role [Snowflake](https://docs.snowflake.com/en/sql-reference/ddl-user-security/) The name of the role to use for the Snowflake connection
 #' @param timeout The number of seconds to wait for the database to connect successfully
 #' @return A data frame containing the results of the query
 #' @examples

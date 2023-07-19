@@ -36,11 +36,11 @@ queryDB(
 
 \item{database}{The name of the database to connect to}
 
-\item{warehouse}{\href{https://www.snowflake.com/data-cloud-glossary/virtual-warehouse}{Snowflake} The name of the warehouse to use for the Snowflake connection}
+\item{warehouse}{\href{https://www.snowflake.com/data-cloud-glossary/virtual-warehouse/}{Snowflake} The name of the warehouse to use for the Snowflake connection}
 
-\item{account}{\href{https://docs.snowflake.com/en/user-guide/admin-account-identifier}{Snowflake} The name of the Snowflake account to connect to}
+\item{account}{\href{https://docs.snowflake.com/en/user-guide/admin-account-identifier/}{Snowflake} The name of the Snowflake account to connect to}
 
-\item{role}{\href{https://docs.snowflake.com/en/sql-reference/ddl-user-security}{Snowflake} The name of the role to use for the Snowflake connection}
+\item{role}{\href{https://docs.snowflake.com/en/sql-reference/ddl-user-security/}{Snowflake} The name of the role to use for the Snowflake connection}
 
 \item{timeout}{The number of seconds to wait for the database to connect successfully}
 }
