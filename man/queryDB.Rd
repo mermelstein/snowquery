@@ -2,23 +2,71 @@
 % Please edit documentation in R/queryDB.R
 \name{queryDB}
 \alias{queryDB}
-\title{Query a Snowflake database}
+\title{Query a Snowflake or Postgres database}
 \usage{
-queryDB(query)
+queryDB(
+  query,
+  conn_name = "default",
+  db_type = NULL,
+  username = NULL,
+  password = NULL,
+  host = NULL,
+  port = NULL,
+  database = NULL,
+  warehouse = NULL,
+  account = NULL,
+  role = NULL,
+  timeout = 15
+)
 }
 \arguments{
 \item{query}{A string of the SQL query to execute}
+
+\item{conn_name}{The name of the connection to use in snowquery_creds.yaml (e.g. "my_snowflake_dwh")}
+
+\item{db_type}{The type of database to connect to (e.g. "snowflake" or "postgres")}
+
+\item{username}{The username to use for authentication}
+
+\item{password}{The password to use for authentication}
+
+\item{host}{The hostname or IP address of the database server}
+
+\item{port}{The port number to use for the database connection}
+
+\item{database}{The name of the database to connect to}
+
+\item{warehouse}{\href{https://www.snowflake.com/data-cloud-glossary/virtual-warehouse/}{Snowflake} The name of the warehouse to use for the Snowflake connection}
+
+\item{account}{\href{https://docs.snowflake.com/en/user-guide/admin-account-identifier/}{Snowflake} The name of the Snowflake account to connect to}
+
+\item{role}{\href{https://docs.snowflake.com/en/sql-reference/ddl-user-security/}{Snowflake} The name of the role to use for the Snowflake connection}
+
+\item{timeout}{The number of seconds to wait for the database to connect successfully}
 }
 \value{
 A data frame containing the results of the query
 }
 \description{
-Run a SQL query on a Snowflake database (requires a \verb{~/snowquery_creds.yaml} file)
+Run a SQL query on a Snowflake or Postgres database (requires a \verb{~/snowquery_creds.yaml} file)
 }
 \examples{
 \dontrun{
 # Query the database and get a dataframe of results
-result <- queryDB("SELECT * FROM my_table")
+result <- queryDB("SELECT * FROM my_table", conn_name='my_snowflake_dwh')
+print(result)
+}
+\dontrun{
+# You can also pass in credentials manually
+result <- queryDB("SELECT * FROM my_table",
+                   db_type='snowflake',
+                   username='my_username',
+                   password='my_password',
+                   account='my_account',
+                   database='my_database',
+                   warehouse='my_warehouse',
+                   role='my_role',
+                   timeout=30)
 print(result)
 }
 

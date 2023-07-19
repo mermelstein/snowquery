@@ -8,15 +8,20 @@
 #'
 #' ```yaml
 #' ---
-#' snowflake:
-#'     account: 'your_account_name'
-#'     warehouse: 'your_warehouse_name'
-#'     database: 'your_database_name'
-#'     username: 'your_username'
-#'     password: 'your_password'
-#'     role: 'your_role'
+#' my_snowflake_dwh:
+#'    db_type: 'snowflake'
+#'    account: 'your_account_name'
+#'    warehouse: 'your_warehouse_name'
+#'    database: 'your_database_name'
+#'    username: 'your_username'
+#'    password: 'your_password'
+#'    role: 'your_role'
+#' 
 #' ```
 #'
+#' This follows a named connection format, where you can have multiple named connections in the same file. 
+#' For example you might have a `my_snowflake_dwh` connection and a `my_snowflake_admin` connection, each with their own credentials.
+#' 
 #' Replace the values in the YAML file with your own Snowflake credentials.
 #' Once you have created the `snowquery_creds.yaml` file, you can use the
 #' `queryDB()` function to query your Snowflake database.
