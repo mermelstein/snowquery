@@ -1,5 +1,5 @@
 #' @title Query a database
-#' @description Run a SQL query on a Snowflake, Redshift or Postgres database (requires a `~/snowquery_creds.yaml` file)
+#' @description Run a SQL query on a Snowflake, Redshift or Postgres database and return the results as a data frame. See the [snowquery README](https://github.com/mermelstein/snowquery#credentials) for more information on how to pass in your credentials.
 #'
 #' @param query A string of the SQL query to execute
 #' @param conn_name The name of the connection to use in snowquery_creds.yaml (e.g. "my_snowflake_dwh")
@@ -65,7 +65,7 @@ queryDB <- function(
     }
   }
 
-  wrong_db_type_message <- paste0("Invalid db_type '", db_type, "'. \n",
+  db_type_error_message <- paste0("Invalid db_type '", db_type, "'. \n",
   "Snowquery currently only supports the following database types: 'snowflake', 'redshift' and 'postgres'")
 
   # pull in the credential file
@@ -178,7 +178,7 @@ queryDB <- function(
       } else if (tolower(db_type) == "redshift") {
         driver_type <- RPostgres::Redshift()
       } else {
-        stop(wrong_db_type_message)
+        stop(db_type_error_message)
       }
       # Use credentials to build connection string
       con <- DBI::dbConnect(driver_type,
@@ -202,6 +202,6 @@ queryDB <- function(
     return(df)
 
   } else {
-    stop(wrong_db_type_message)
+    stop(db_type_error_message)
   }
 }

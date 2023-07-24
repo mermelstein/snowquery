@@ -56,7 +56,9 @@ If you need to install the Snowflake python connector, you can do that with the 
 pip install "snowflake-connector-python[pandas]"
 ```
 
-You will also need to have your database credentials in a YAML file called `snowquery_creds.yaml`. The file should be located in the
+### Credentials
+
+You will need to have your database credentials in a YAML file called `snowquery_creds.yaml`. The file should be located in the
 root directory of your machine and should have the following format:
 
 ```yaml
