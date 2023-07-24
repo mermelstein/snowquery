@@ -1,3 +1,7 @@
+# snowquery 1.0.1
+
+* Added Redshift support
+
 # snowquery 1.0.0
 
 * Formalized structure for database credential file
