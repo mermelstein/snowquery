@@ -1,4 +1,4 @@
-# snowquery 1.0.1
+# snowquery 1.1.0
 
 * Added Redshift support
 

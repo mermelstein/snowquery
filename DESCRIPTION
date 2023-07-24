@@ -1,6 +1,6 @@
 Package: snowquery
 Title: Query 'Snowflake' Databases with 'SQL'
-Version: 1.0.1
+Version: 1.1.0
 Authors@R: 
     person("Dani", "Mermelstein", , "dmermelstein@hey.com", role = c("aut", "cre", "cph"))
 Maintainer: Dani Mermelstein <dmermelstein@hey.com>
