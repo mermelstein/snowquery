@@ -59,18 +59,33 @@ pip install "snowflake-connector-python[pandas]"
 ### Credentials
 
 You will need to have your database credentials in a YAML file called `snowquery_creds.yaml`. The file should be located in the
-root directory of your machine and should have the following format:
+root directory of your machine and should have the following format (depending on which database type you are connecting to):
 
 ```yaml
 ---
 my_snowflake_dwh:
-    db_type: 'snowflake'
-    account: 'your_account_name'
-    warehouse: 'your_warehouse_name'
-    database: 'your_database_name'
-    username: 'your_username'
-    password: 'your_password'
-    role: 'your_role'
+    db_type: snowflake
+    account: 
+    warehouse: 
+    database: 
+    username: 
+    password: 
+    role: 
+my_redshift_dwh:
+    db_type: redshift
+    sslmode: require
+    host: 
+    port: 
+    database: 
+    username: 
+    password: 
+my_postgres_db:
+    db_type: postgres
+    host: 
+    port: 
+    database: 
+    username: 
+    password: 
 
 ```
 
