@@ -32,7 +32,7 @@ For more information on using `snowquery`, please see the [package website](http
 
 ### Requirements for Use
 
-You must have a local python installation and the Snowflake python connector installed. If you need to install python you can do that with [Homebrew](https://brew.sh/) from the terminal:
+Redshift and Postgres db connections are entirely contained by this package. If querying Snowflake you must have a local python installation and the Snowflake python connector installed. If you need to install python you can do that with [Homebrew](https://brew.sh/) from the terminal:
 
 ```bash
 # for example to install python 3.10 on MacOS
@@ -44,7 +44,7 @@ If you need to install the Snowflake python connector, you can do that with the 
 pip install "snowflake-connector-python[pandas]"
 ```
 
-You will also need to have your Snowflake credentials in a YAML file called `snowquery_creds.yaml`. The file should be located in the
+For all db connections you will also need to have your credentials in a YAML file called `snowquery_creds.yaml`. The file should be located in the
 root directory of your machine and should have the following format:
 
 ```yaml
