@@ -148,6 +148,8 @@ queryDB <- function(
     cursor$close()
     # Disconnect from the database
     con$close()
+    # check if any df columns are a list and convert to character (issue with pandas df to R df conversion)
+    df[] <- lapply(df, function(x) if(is.list(x)) sapply(x, paste, collapse = ",") else x)
     # Return the query results
     return(df)
 
