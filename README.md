@@ -6,14 +6,9 @@
 
 ## Overview
 
-Run SQL queries on a Snowflake instance from an R script. This will be similar to how you might be using DBI or odbc to query a postgres or Redshift database, but because Snowflake's driver requires a ton of fiddling in order to make it work for R this is an alternate solution.
+Run SQL queries on Snowflake, Redshift, or a postgres database from an R script. 
 
-This sums up the current experience of running SQL against Snowflake from:
-
-  - python: good &#x2705;
-  - R: bad &#x274C;
-
-That's why the `snowquery` package takes the [Snowflake python connector](https://docs.snowflake.com/en/developer-guide/python-connector/python-connector-pandas) and leverages it in the background to run queries from R.
+This package is designed to make it easy to run SQL queries from R. It is designed to work with Snowflake, Redshift, or a postgres database. It is not designed to work with other databases, but it could be extended to do so.
 
 ### Installation
 
@@ -25,6 +20,23 @@ install.packages("snowquery")
 # install.packages("devtools")
 devtools::install_github("mermelstein/snowquery")
 ```
+
+### Redshift notes
+
+Redshift is currently only available on the development version of this package. See [installation instructions](#installation) above.
+
+When connecting to a Redshift DWH you might need to specify an SSL connection. You can do this with a `sslmode='require'` connection variable or by passing that to the `queryDB()` function directly.
+
+### Snowflake notes
+
+Because Snowflake's driver requires a ton of fiddling in order to make it work for R. It sucks. A lot.
+
+To sum up the current experience of running SQL against Snowflake from:
+
+  - python: good &#x2705;
+  - R: bad &#x274C;
+
+That's why the `snowquery` package takes the [Snowflake python connector](https://docs.snowflake.com/en/developer-guide/python-connector/python-connector-pandas) and leverages it in the background to run queries from R.
 
 ### Documentation
 
@@ -44,25 +56,42 @@ If you need to install the Snowflake python connector, you can do that with the 
 pip install "snowflake-connector-python[pandas]"
 ```
 
-For all db connections you will also need to have your credentials in a YAML file called `snowquery_creds.yaml`. The file should be located in the
-root directory of your machine and should have the following format:
+### Credentials
+
+For all db connections you will need to have your database credentials in a YAML file called `snowquery_creds.yaml`. The file should be located in the root directory of your machine and should have the following format (depending on which database type you are connecting to):
+
 
 ```yaml
 ---
 my_snowflake_dwh:
-    db_type: 'snowflake'
-    account: 'your_account_name'
-    warehouse: 'your_warehouse_name'
-    database: 'your_database_name'
-    username: 'your_username'
-    password: 'your_password'
-    role: 'your_role'
+    db_type: snowflake
+    account: 
+    warehouse: 
+    database: 
+    username: 
+    password: 
+    role: 
+my_redshift_dwh:
+    db_type: redshift
+    sslmode: require
+    host: 
+    port: 
+    database: 
+    username: 
+    password: 
+my_postgres_db:
+    db_type: postgres
+    host: 
+    port: 
+    database: 
+    username: 
+    password: 
 
 ```
 
 This follows a named connection format, where you can have multiple named connections in the same file. For example you might have a `my_snowflake_dwh` connection and a `my_snowflake_admin` connection, each with their own credentials.
 
-The main function of this package looks for that file at this location: `~/snowquery_creds.yaml`. **If it is in any other location it will not work.** If the package cannot locate the file you will receive an error like: `cannot open file '/expected/path/to/file/snowquery_creds.yaml': No such file or directory`.
+This package looks for the credential file at this location: `~/snowquery_creds.yaml`. **If it is in any other location it will not work.** If the package cannot locate the file you will receive an error like: `cannot open file '/expected/path/to/file/snowquery_creds.yaml': No such file or directory`. You can manually pass credentials to the `queryDB()` function but it is recommended to use the YAML file.
 
 You are now ready to query away!
 
@@ -70,7 +99,7 @@ You are now ready to query away!
 
 Load this library in your R environment with `library(snowquery)`.
 
-There is one function you need: `queryDB()`. It will take a string parameter and run that as a SQL query.
+There is one function you need: `queryDB()`. It will take a SQL query as a string parameter and run it on the db.
 
 For example:
 
