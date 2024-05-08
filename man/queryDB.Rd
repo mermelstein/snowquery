@@ -2,7 +2,7 @@
 % Please edit documentation in R/queryDB.R
 \name{queryDB}
 \alias{queryDB}
-\title{Query a Snowflake or Postgres database}
+\title{Query a database}
 \usage{
 queryDB(
   query,
@@ -16,6 +16,7 @@ queryDB(
   warehouse = NULL,
   account = NULL,
   role = NULL,
+  sslmode = NULL,
   timeout = 15
 )
 }
@@ -24,7 +25,7 @@ queryDB(
 
 \item{conn_name}{The name of the connection to use in snowquery_creds.yaml (e.g. "my_snowflake_dwh")}
 
-\item{db_type}{The type of database to connect to (e.g. "snowflake" or "postgres")}
+\item{db_type}{The type of database to connect to (e.g. "snowflake", "redshift" or "postgres")}
 
 \item{username}{The username to use for authentication}
 
@@ -42,13 +43,15 @@ queryDB(
 
 \item{role}{\href{https://docs.snowflake.com/en/sql-reference/ddl-user-security/}{Snowflake} The name of the role to use for the Snowflake connection}
 
+\item{sslmode}{Whether to use sslmode for the postgres or redshift connection}
+
 \item{timeout}{The number of seconds to wait for the database to connect successfully}
 }
 \value{
 A data frame containing the results of the query
 }
 \description{
-Run a SQL query on a Snowflake or Postgres database (requires a \verb{~/snowquery_creds.yaml} file)
+Run a SQL query on a Snowflake, Redshift or Postgres database and return the results as a data frame. See the \href{https://github.com/mermelstein/snowquery#credentials}{snowquery README} for more information on how to pass in your credentials.
 }
 \examples{
 \dontrun{

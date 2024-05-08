@@ -3,6 +3,7 @@
 export(queryDB)
 import(DBI)
 import(RPostgres)
+import(RSQLite)
 import(reticulate)
 import(yaml)
 importFrom(reticulate,import)

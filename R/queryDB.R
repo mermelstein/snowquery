@@ -12,6 +12,7 @@
 #' @param warehouse [Snowflake](https://www.snowflake.com/data-cloud-glossary/virtual-warehouse/) The name of the warehouse to use for the Snowflake connection
 #' @param account [Snowflake](https://docs.snowflake.com/en/user-guide/admin-account-identifier/) The name of the Snowflake account to connect to
 #' @param role [Snowflake](https://docs.snowflake.com/en/sql-reference/ddl-user-security/) The name of the role to use for the Snowflake connection
+#' @param sslmode Whether to use sslmode for the postgres or redshift connection
 #' @param timeout The number of seconds to wait for the database to connect successfully
 #' @return A data frame containing the results of the query
 #' @examples
@@ -37,6 +38,7 @@
 #' @import yaml
 #' @import reticulate
 #' @import RPostgres
+#' @import RSQLite
 #' @import DBI
 #' @importFrom reticulate import use_python
 #' @importFrom reticulate import import
@@ -203,6 +205,27 @@ queryDB <- function(
     # Return the query results
     return(df)
 
+  } else if (tolower(db_type) == "sqlite") {
+    # Check if database file path is provided manually by user
+    database_ <- check_null(database, check_null(conn_details$database, NULL))
+
+    # Check if database file path is missing
+    if (is.null(database_)) {
+      stop(paste0("Database file path is missing for the SQLite connection. \n",
+                  "Please pass in the database file path to queryDB() or add it to the snowquery_creds.yaml file."))
+    } else {
+      # Use database file path to build connection string
+      con <- DBI::dbConnect(RSQLite::SQLite(), dbname = database_)
+    }
+
+    # Run the SQL query
+    res <- DBI::dbSendQuery(con, query)
+    df <- DBI::dbFetch(res)
+    DBI::dbClearResult(res)
+    # Disconnect from the database
+    DBI::dbDisconnect(con)
+    # Return the query results
+    return(df)
   } else {
     stop(db_type_error_message)
   }

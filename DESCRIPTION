@@ -1,6 +1,6 @@
 Package: snowquery
 Title: Query 'Snowflake' Databases with 'SQL'
-Version: 1.1.0
+Version: 1.2.0
 Authors@R: 
     person("Dani", "Mermelstein", , "dmermelstein@hey.com", role = c("aut", "cre", "cph"))
 Maintainer: Dani Mermelstein <dmermelstein@hey.com>
@@ -11,7 +11,8 @@ Imports:
   reticulate,
   yaml,
   DBI,
-  RPostgres
+  RPostgres,
+  RSQLite
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3

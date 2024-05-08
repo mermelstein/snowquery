@@ -1,3 +1,7 @@
+# snowquery 1.2.0
+
+* Added SQLite support
+
 # snowquery 1.1.0
 
 * Added Redshift support
