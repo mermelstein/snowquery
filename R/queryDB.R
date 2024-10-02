@@ -104,10 +104,19 @@ queryDB <- function(
       # Import the snowflake.connector module from the snowflake-connector-python package
       snowflake <- import("snowflake.connector")
     }, error = function(e) {
-      stop(paste0("Failed to import the snowflake.connector module. Please make sure it is installed and accessible from your environment. \n",
-      "Try running the following command from your terminal or command line:\n\n",
-      "pip install 'snowflake-connector-python[pandas]'\n\n",
-      "Error message: ", e$message))
+      message("Failed to import the snowflake.connector module. Attempting to install the python package...")
+      tryCatch({
+        # Install the snowflake-connector-python package
+        reticulate::py_install("snowflake-connector-python[pandas]", pip = TRUE)
+        # Retry importing the snowflake.connector module
+        snowflake <- import("snowflake.connector")
+        message("Successfully installed and imported the snowflake.connector module.")
+      }, error = function(e) {
+        stop(paste0("Failed to install and import the snowflake.connector module. Please make sure it is installed and accessible from your environment. \n",
+                    "Try running the following command from your terminal or command line:\n\n",
+                    "pip install 'snowflake-connector-python[pandas]'\n\n",
+                    "Error message: ", e$message))
+      })
     })
     username_ <- check_null(username, check_null(conn_details$user, NULL))
     password_ <- check_null(password, check_null(conn_details$password, NULL))
