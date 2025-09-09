@@ -96,8 +96,8 @@ queryDB <- function(
         cursor <- con$cursor()
         cursor$execute(query)
         
-    # Streaming fetch using batches if available; fallback to full fetch.
-    wrote_any <- FALSE
+        # Streaming fetch using batches if available; fallback to full fetch.
+        wrote_any <- FALSE
     if (reticulate::py_has_attr(cursor, "fetch_pandas_batches")) {
       gen <- cursor$fetch_pandas_batches()
       for (batch in reticulate::iterate(gen)) {
@@ -128,6 +128,7 @@ queryDB <- function(
         row_count <- row_count_df$n
         
         message(sprintf("Successfully cached %s rows to DuckDB table '%s' (analytics.duckdb).", row_count, cache_table_name))
+        return(invisible(row_count))
     }
 
   } else {
