@@ -96,43 +96,38 @@ queryDB <- function(
         cursor <- con$cursor()
         cursor$execute(query)
         
-        # Fetch the first batch to get the table structure
-        first_batch <- cursor$fetch_pandas_batch()
-        
-        if (nrow(first_batch) > 0) {
-            # Create or replace table with the first batch
-            if (overwrite) {
-                DBI::dbWriteTable(duckdb_con, cache_table_name, first_batch, overwrite = TRUE)
-            } else {
-                DBI::dbWriteTable(duckdb_con, cache_table_name, first_batch, append = TRUE)
-            }
-            
-            # Fetch and append subsequent batches
-            while (TRUE) {
-                batch <- cursor$fetch_pandas_batch()
-                if (nrow(batch) == 0) {
-                    break
-                }
-                DBI::dbWriteTable(duckdb_con, cache_table_name, batch, append = TRUE)
-            }
+    # Streaming fetch using batches if available; fallback to full fetch.
+    wrote_any <- FALSE
+    if (reticulate::py_has_attr(cursor, "fetch_pandas_batches")) {
+      gen <- cursor$fetch_pandas_batches()
+      for (batch in reticulate::iterate(gen)) {
+        if (is.null(batch) || nrow(batch) == 0) next
+        if (!wrote_any) {
+          DBI::dbWriteTable(duckdb_con, cache_table_name, batch, overwrite = TRUE)
+          wrote_any <- TRUE
         } else {
-            # If the query returns no data, create an empty table
-            if (overwrite) {
-                # We need to handle creating an empty table if it doesn't exist
-                # This is a simplification; ideally, we'd get schema info
-                DBI::dbExecute(duckdb_con, paste0("CREATE OR REPLACE TABLE ", cache_table_name, " AS SELECT * FROM (SELECT 1) WHERE 1=0;"))
-            }
+          DBI::dbWriteTable(duckdb_con, cache_table_name, batch, append = TRUE)
         }
+      }
+    } else {
+      # Fallback: connector lacks batch iterator; fetch all at once
+      all_df <- cursor$fetch_pandas_all()
+      if (nrow(all_df) > 0) {
+        DBI::dbWriteTable(duckdb_con, cache_table_name, all_df, overwrite = TRUE)
+        wrote_any <- TRUE
+      }
+    }
+    if (!wrote_any && overwrite) {
+      # Create an empty table placeholder (no rows) if nothing was returned
+      DBI::dbExecute(duckdb_con, paste0("CREATE OR REPLACE TABLE ", cache_table_name, " AS SELECT * FROM (SELECT 1) WHERE 1=0;"))
+    }
         
         cursor$close()
         
-        row_count_query <- DBI::dbSendQuery(duckdb_con, paste("SELECT COUNT(*) FROM", cache_table_name))
-        row_count <- DBI::dbFetch(row_count_query)$`count(*)`
-        DBI::dbClearResult(row_count_query)
+        row_count_df <- DBI::dbGetQuery(duckdb_con, sprintf("SELECT COUNT(*) AS n FROM %s", cache_table_name))
+        row_count <- row_count_df$n
         
-        return(invisible(
-            paste("Successfully cached", row_count, "rows to table '", cache_table_name, "' in 'analytics.duckdb'.")
-        ))
+        message(sprintf("Successfully cached %s rows to DuckDB table '%s' (analytics.duckdb).", row_count, cache_table_name))
     }
 
   } else {

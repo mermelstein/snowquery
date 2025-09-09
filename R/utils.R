@@ -1,3 +1,58 @@
+.ensure_snowflake_connector <- function(min_version = "2.7.4") {
+  # Single-responsibility helper: ensure the Python snowflake connector
+  # (with pandas extras) is installed, at or above min_version, and imported.
+  suppressWarnings({
+    # 1. Install if missing
+    if (!reticulate::py_module_available("snowflake.connector")) {
+      message("snowflake.connector not available. Installing...")
+      tryCatch({
+        reticulate::py_install("snowflake-connector-python[pandas]", pip = TRUE)
+      }, error = function(e) {
+        stop("Installation of 'snowflake-connector-python' failed: ", e$message)
+      })
+    }
+
+    # 2. Import (fail hard if not importable)
+    snowflake <- tryCatch(
+      reticulate::import("snowflake.connector", delay_load = FALSE),
+      error = function(e) {
+        stop("Failed to import 'snowflake.connector' after installation attempt: ", e$message)
+      }
+    )
+
+    # 3. Version check & upgrade if too old
+    version_raw <- tryCatch(reticulate::py_get_attr(snowflake, "__version__"), error = function(e) NA_character_)
+    version_str <- {
+      if (is.null(version_raw) || (length(version_raw) == 1 && is.na(version_raw))) {
+        NA_character_
+      } else {
+        as.character(version_raw)[1]
+      }
+    }
+    if (!is.na(version_str) && nzchar(version_str)) {
+      # Normalize version (strip possible build/meta tags)
+      normalized <- sub("[+].*$", "", version_str)
+      if (suppressWarnings(utils::compareVersion(normalized, min_version)) < 0) {
+        message(sprintf(
+          "snowflake-connector-python version %s < required %s. Upgrading...",
+          version_str, min_version
+        ))
+        tryCatch({
+          reticulate::py_install("snowflake-connector-python[pandas]", pip = TRUE, pip_options = "--upgrade")
+        }, error = function(e) {
+          stop("Upgrade of 'snowflake-connector-python' failed: ", e$message)
+        })
+        snowflake <- reticulate::import("snowflake.connector", delay_load = FALSE, force = TRUE)
+        message("Upgrade complete.")
+      }
+    } else {
+      message("Could not determine snowflake.connector version; skipping version enforcement.")
+    }
+
+    snowflake
+  })
+}
+
 .get_db_connection <- function(conn_name, db_type = NULL, config_path = "~/snowquery_creds.yaml") {
   
   check_null <- function(var, default) {
@@ -30,24 +85,9 @@
     }, error = function(e) {
       stop("Failed to find python executable. ", e$message)
     })
-    # Suppress warnings about ephemeral reticulate environments
-    suppressWarnings({
-        tryCatch({
-            snowflake <- reticulate::import("snowflake.connector")
-        }, error = function(e) {
-            message("Failed to import snowflake.connector. Attempting to install...")
-            tryCatch({
-                reticulate::py_install("snowflake-connector-python[pandas]", pip = TRUE)
-                # Assign to the parent environment
-                snowflake <<- reticulate::import("snowflake.connector")
-                message("Successfully installed and imported snowflake.connector.")
-            }, error = function(e_install) {
-                stop(paste0("Failed to install the 'snowflake-connector-python' package. ",
-                            "Please try installing it manually by running 'pip install \"snowflake-connector-python[pandas]\"' in your terminal. ",
-                            "Installation error: ", e_install$message))
-            })
-        })
-    })
+    
+    # Get the snowflake module using the helper function
+    snowflake <- .ensure_snowflake_connector()
     
     username_ <- check_null(conn_details$user, NULL)
     password_ <- check_null(conn_details$password, NULL)

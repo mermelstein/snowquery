@@ -37,12 +37,9 @@
   # Unregister the view
   duckdb::duckdb_unregister(duckdb_con, "temp_view")
   
-  # Get row count for the confirmation message
-  row_count_query <- DBI::dbSendQuery(duckdb_con, paste("SELECT COUNT(*) FROM", dest_table_name))
-  row_count <- DBI::dbFetch(row_count_query)$`count(*)`
-  DBI::dbClearResult(row_count_query)
-  
-  return(invisible(
-    paste("Successfully cached", row_count, "rows to table '", dest_table_name, "' in 'analytics.duckdb'.")
-  ))
+  # Get row count for the confirmation message (alias for reliable column name)
+  row_count_df <- DBI::dbGetQuery(duckdb_con, paste0("SELECT COUNT(*) AS n FROM ", dest_table_name))
+  row_count <- if (nrow(row_count_df) == 1) row_count_df$n else NA_integer_
+
+  message(sprintf("Successfully cached %s rows to DuckDB table '%s' (analytics.duckdb).", row_count, dest_table_name))
 }
