@@ -30,18 +30,22 @@
     }, error = function(e) {
       stop("Failed to find python executable. ", e$message)
     })
-    tryCatch({
-      snowflake <- reticulate::import("snowflake.connector")
-    }, error = function(e) {
-        message("Failed to import snowflake.connector. Attempting to install...")
+    # Suppress warnings about ephemeral reticulate environments
+    suppressWarnings({
         tryCatch({
-            reticulate::py_install("snowflake-connector-python[pandas]", pip = TRUE)
             snowflake <- reticulate::import("snowflake.connector")
-            message("Successfully installed and imported snowflake.connector.")
-        }, error = function(e_install) {
-            stop(paste0("Failed to install the 'snowflake-connector-python' package. ",
-                        "Please try installing it manually by running 'pip install \"snowflake-connector-python[pandas]\"' in your terminal. ",
-                        "Installation error: ", e_install$message))
+        }, error = function(e) {
+            message("Failed to import snowflake.connector. Attempting to install...")
+            tryCatch({
+                reticulate::py_install("snowflake-connector-python[pandas]", pip = TRUE)
+                # Assign to the parent environment
+                snowflake <<- reticulate::import("snowflake.connector")
+                message("Successfully installed and imported snowflake.connector.")
+            }, error = function(e_install) {
+                stop(paste0("Failed to install the 'snowflake-connector-python' package. ",
+                            "Please try installing it manually by running 'pip install \"snowflake-connector-python[pandas]\"' in your terminal. ",
+                            "Installation error: ", e_install$message))
+            })
         })
     })
     
