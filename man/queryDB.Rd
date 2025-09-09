@@ -39,7 +39,7 @@ queryDB(
 
 \item{database}{The name of the database to connect to}
 
-\item{warehouse}{\href{https://www.snowflake.com/data-cloud-glossary/virtual-warehouse/}{Snowflake} The name of the warehouse to use for the Snowflake connection}
+\item{warehouse}{\href{https://docs.snowflake.com/en/user-guide/warehouses/}{Snowflake} The name of the warehouse to use for the Snowflake connection}
 
 \item{account}{\href{https://docs.snowflake.com/en/user-guide/admin-account-identifier/}{Snowflake} The name of the Snowflake account to connect to}
 

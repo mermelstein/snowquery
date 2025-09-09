@@ -1,7 +1,15 @@
 #' @keywords internal
 "_PACKAGE"
 
-#' This package provides functions for querying Snowflake, Redshift, Postgres and SQLite databases using R.
+#' Run SQL on Snowflake, Redshift, Postgres, SQLite and DuckDB from a single function.
+#'
+#' This package provides a unified interface for issuing SQL queries across multiple data warehouses and
+#' databases (Snowflake, Amazon Redshift, PostgreSQL, SQLite, DuckDB). It can also stream large remote
+#' result sets directly into a local DuckDB file (`analytics.duckdb`) for fast, low-cost, repeatable analytics.
+#' Snowflake queries are executed through the official Python connector via reticulate; the package will
+#' auto-install and enforce a minimum connector version when first used.
+#'
+#' Credentials are managed through a single YAML file supporting multiple named connections.
 #' To use this package, you will need to provide your database credentials in a
 #' YAML file called `snowquery_creds.yaml`. The file should be located in the
 #' root directory of your R project and should have the following format:

@@ -107,8 +107,26 @@ Load this library in your R environment with `library(snowquery)`.
 
 #### Basic Remote Query
 ```r
+queryDB("SELECT * FROM MY_AWESOME_TABLE", conn_name='my_snowflake_dwh')
+```
+or
+```r
 # Query Snowflake and get results as a data frame
 results <- queryDB("SELECT * FROM my_large_table LIMIT 1000", conn_name = "my_snowflake_dwh")
+```
+or 
+```r
+# You can also pass in credentials manually
+results <- queryDB("SELECT * FROM my_table",
+                   db_type='snowflake',
+                   username='my_username',
+                   password='my_password',
+                   account='my_account',
+                   database='my_database',
+                   warehouse='my_warehouse',
+                   role='my_role',
+                   timeout=30)
+print(results)
 ```
 
 #### Caching to DuckDB
