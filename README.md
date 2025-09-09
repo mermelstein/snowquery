@@ -6,9 +6,9 @@
 
 ## Overview
 
-Run SQL queries on Snowflake, Redshift, Postgres, or a local DuckDB database from an R script. 
+Run SQL queries on Snowflake, Redshift, Postgres, SQLite, or a local DuckDB database from R using a single function: `queryDB()`. 
 
-This package is designed to make it easy to run SQL queries from R. It is designed to work with Snowflake, Redshift, or a postgres database. It also now supports local caching and querying with DuckDB.
+snowquery now also supports streaming remote query results directly into a local DuckDB file for fast, repeatable, low‑cost analysis.
 
 ### Installation
 
@@ -42,57 +42,56 @@ That's why the `snowquery` package takes the [Snowflake python connector](https:
 
 For more information on using `snowquery`, please see the [package website](https://snowquery.org).
 
-### Requirements for Use
+### Requirements
 
-The `duckdb` R package is required for using the local caching features. You can install it from CRAN:
-```r
-install.packages("duckdb")
-```
+Base R dependencies are installed automatically via the DESCRIPTION. Additional runtime needs:
 
-Redshift and Postgres db connections are entirely contained by this package. If querying Snowflake you must have a local python installation and the Snowflake python connector installed. If you need to install python you can do that with [Homebrew](https://brew.sh/) from the terminal:
+1. DuckDB caching: `duckdb` (installed automatically when you install the package, but you may also install manually with `install.packages("duckdb")`).
+2. Snowflake: A Python 3 runtime accessible to `reticulate`. The package will automatically install / upgrade `snowflake-connector-python[pandas]` the first time you run a Snowflake query. No manual `pip install` is required in normal use.
+3. Redshift / Postgres: Handled through `RPostgres` (already imported). If you need SSL, set `sslmode` in the YAML or pass it directly.
+4. SQLite: Provide a file path in the credential YAML (see below).
 
-```bash
-# for example to install python 3.10 on MacOS
-brew install python@3.10
-```
-
-If you need to install the Snowflake python connector, you can do that with the following command from the terminal:
-```bash
-pip install "snowflake-connector-python[pandas]"
-```
+If the package cannot find a working Python, you'll receive an actionable error explaining what to install.
 
 ### Credentials
 
-For all db connections you will need to have your database credentials in a YAML file called `snowquery_creds.yaml`. The file should be located in the root directory of your machine and should have the following format (depending on which database type you are connecting to):
+For all db connections you will need a YAML file called `snowquery_creds.yaml` at `~/snowquery_creds.yaml` with one or more named connections:
 
 
 ```yaml
 ---
 my_snowflake_dwh:
-    db_type: snowflake
-    account: 
-    warehouse: 
-    database: 
-    username: 
-    password: 
-    role: 
+  db_type: snowflake
+  account: your_account
+  warehouse: your_wh
+  database: your_db
+  user: your_user          # note: key is 'user' not 'username' for snowflake
+  password: your_pw
+  role: your_role
+
 my_redshift_dwh:
-    db_type: redshift
-    sslmode: require
-    host: 
-    port: 
-    database: 
-    username: 
-    password: 
+  db_type: redshift
+  host: redshift-cluster.host.aws.com
+  port: 5439
+  database: analytics
+  username: rs_user
+  password: rs_pw
+  sslmode: require
+
 my_postgres_db:
-    db_type: postgres
-    host: 
-    port: 
-    database: 
-    username: 
-    password: 
-my_local_db:
-    db_type: duckdb
+  db_type: postgres
+  host: localhost
+  port: 5432
+  database: pg_db
+  username: pg_user
+  password: pg_pw
+
+my_sqlite_db:
+  db_type: sqlite
+  database: /path/to/local.sqlite
+
+my_duckdb_local:
+  db_type: duckdb   # connects to the default analytics.duckdb file in working dir
 
 ```
 
@@ -112,52 +111,52 @@ Load this library in your R environment with `library(snowquery)`.
 results <- queryDB("SELECT * FROM my_large_table LIMIT 1000", conn_name = "my_snowflake_dwh")
 ```
 
-#### Caching a Remote Query to DuckDB
-You can cache the results of any remote query to a local DuckDB file by providing the `cache_path` and `cache_table_name` arguments. This is ideal for pulling a dataset once and analyzing it locally many times.
+#### Caching to DuckDB
+Provide `cache_table_name` to stream results into the local DuckDB file `analytics.duckdb`:
 
 ```r
-# Run a query on Snowflake and save the results to a table named 'large_table_local'
-# in a local DuckDB file called 'analytics.duckdb'
+# Cache a Snowflake query (streaming batches when possible)
 queryDB(
-  "SELECT * FROM my_large_table",
+  "SELECT * FROM MY_SCHEMA.BIG_FACT_TABLE WHERE load_date >= '2025-09-01'",
   conn_name = "my_snowflake_dwh",
-  cache_table_name = "large_table_local",
+  cache_table_name = "big_fact_local",
   overwrite = TRUE
 )
-# Expected output:
-# [1] "Successfully cached 24576 rows to table 'large_table_local' in 'analytics.duckdb'."
-```
+# message: Successfully cached 1234567 rows to DuckDB table 'big_fact_local' (analytics.duckdb).
 
-#### Querying the Local DuckDB Cache
-Once the data is cached, you can query it directly by setting up a `duckdb` connection in your `snowquery_creds.yaml` file.
-
-```r
-# First, add a connection to your YAML file:
-# my_local_analytics:
-#   db_type: duckdb
-
-# Now, query the local cache
-local_results <- queryDB(
-  "SELECT category, AVG(value) FROM large_table_local GROUP BY 1",
-  conn_name = "my_local_analytics"
+# Cache a Postgres query (uses dplyr/dbplyr lazy streaming under the hood)
+queryDB(
+  "SELECT id, event_ts, metric FROM events WHERE event_ts >= now() - interval '7 days'",
+  conn_name = "my_postgres_db",
+  cache_table_name = "recent_events",
+  overwrite = TRUE
 )
 ```
 
-#### Helper Functions for DuckDB
-Two helper functions are available for interacting with your local DuckDB cache:
+Key behaviors:
+* Snowflake path streams using `fetch_pandas_batches()` when available; otherwise falls back to a single fetch.
+* Postgres / Redshift path uses a lazy dplyr table registered into DuckDB for efficient transfer.
+* `overwrite = TRUE` creates/replaces the DuckDB table; set `overwrite = FALSE` to append (for Snowflake append happens batch‑by‑batch; for Postgres/Redshift you can modify logic as needed).
+* You cannot cache from a DuckDB source (`db_type == 'duckdb'`).
+
+#### Querying the Local DuckDB Cache
+Add a DuckDB connection to the YAML (see `my_duckdb_local` example above) and query cached tables:
 
 ```r
-# List all tables in your local DB
-tables <- list_cached_tables(conn_name = "my_local_analytics")
-# > [1] "large_table_local"
+local_summary <- queryDB(
+  "SELECT COUNT(*) AS n_rows FROM big_fact_local",
+  conn_name = "my_duckdb_local"
+)
+local_summary
+```
 
-# Get a direct DBI connection for use with other tools like dplyr
-library(dplyr)
-con <- get_duckdb_connection(conn_name = "my_local_analytics")
+You can also use DBI or dplyr directly:
 
-tbl(con, "large_table_local") %>%
-  filter(category == 'A') %>%
-  summarise(total = n())
+```r
+library(DBI)
+duck_con <- DBI::dbConnect(duckdb::duckdb(), dbdir = "analytics.duckdb")
+DBI::dbGetQuery(duck_con, "SELECT * FROM recent_events LIMIT 5")
+DBI::dbDisconnect(duck_con, shutdown = TRUE)
 ```
 
 There is one function you need: `queryDB()`. It will take a SQL query as a string parameter and run it on the db.
@@ -197,13 +196,22 @@ result <- queryDB("SELECT * FROM my_table",
 print(result)
 ```
 
-### Caching with DuckDB
+### DuckDB Caching Notes
 
-`snowquery` now integrates `duckdb` to allow for powerful local caching and analysis workflows. This is especially useful for reducing query costs and improving performance when working with large datasets from remote data warehouses.
+Workflow:
+1. Pull once from a remote DWH.
+2. Iterate locally against DuckDB for joins, aggregations, prototyping.
+3. Refresh by re‑running with `overwrite = TRUE`, or append with `overwrite = FALSE` (Snowflake / append path: ensure schema consistency).
 
-There are two primary ways to use the DuckDB integration:
+Why DuckDB?
+* Fast analytical execution (vectorized / columnar).
+* Lightweight (no server to run).
+* Plays nicely with data frames and dplyr (`dbplyr` translations work out of the box for Postgres/Redshift streaming path).
 
-1.  **Cache Remote Query Results**: Run a query against a remote source (like Snowflake) and save the results directly into a local DuckDB database file. This creates a local replica of your data for fast, iterative analysis.
-2.  **Query a DuckDB Database Directly**: Connect to an existing DuckDB database and query its tables using the same `queryDB()` function.
+Limitations / Notes:
+* Snowflake streaming depends on connector feature availability; falls back to full fetch if batch iterator missing.
+* Appending from heterogenous schemas is not validated automatically.
+* No explicit indexing (internal zone maps generally sufficient).
+* Caching from a DuckDB source is intentionally blocked (it is already local).
 
-This allows you to build a hybrid workflow: extract data from a remote DWH once, and then perform all subsequent analysis on the fast, local DuckDB cache.
+Planned (future): progress display, verbosity flag, helper to enumerate cached tables.
