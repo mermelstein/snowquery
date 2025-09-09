@@ -1,19 +1,22 @@
 Package: snowquery
-Title: Query 'Snowflake' Databases with 'SQL'
-Version: 1.2.1
+Title: Run SQL on Snowflake, Redshift, Postgres, SQLite and DuckDB
+Version: 1.3.0
 Authors@R: 
     person("Dani", "Mermelstein", , "dmermelstein@hey.com", role = c("aut", "cre", "cph"))
 Maintainer: Dani Mermelstein <dmermelstein@hey.com>
-Description: A wrapper allowing 'SQL' queries to be run on a 'Snowflake' instance directly from an 'R' script, by using the 'snowflake-connector-python' package in the background.
+Description: Provides a unified interface to run SQL queries against Snowflake, Amazon Redshift, PostgreSQL, SQLite and DuckDB from R. Optionally streams large remote query results directly into a local DuckDB file for fast, reproducible, low-cost analytics. Snowflake queries are executed via the snowflake-connector-python through reticulate; the package auto-installs and enforces a minimum connector version. Credentials are managed via a single YAML file supporting multiple named connections.
 URL: https://github.com/mermelstein/snowquery
 BugReports: https://github.com/mermelstein/snowquery/issues
-Imports:
-  reticulate,
-  yaml,
-  DBI,
-  RPostgres,
-  RSQLite
+Imports: 
+    yaml,
+    reticulate,
+    RPostgres,
+    RSQLite,
+    DBI,
+    duckdb,
+    dplyr,
+    dbplyr
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.3
 License: GPL (>= 3)

@@ -17,7 +17,9 @@ queryDB(
   account = NULL,
   role = NULL,
   sslmode = NULL,
-  timeout = 15
+  timeout = 15,
+  cache_table_name = NULL,
+  overwrite = TRUE
 )
 }
 \arguments{
@@ -37,7 +39,7 @@ queryDB(
 
 \item{database}{The name of the database to connect to}
 
-\item{warehouse}{\href{https://www.snowflake.com/data-cloud-glossary/virtual-warehouse/}{Snowflake} The name of the warehouse to use for the Snowflake connection}
+\item{warehouse}{\href{https://docs.snowflake.com/en/user-guide/warehouses/}{Snowflake} The name of the warehouse to use for the Snowflake connection}
 
 \item{account}{\href{https://docs.snowflake.com/en/user-guide/admin-account-identifier/}{Snowflake} The name of the Snowflake account to connect to}
 
@@ -46,9 +48,13 @@ queryDB(
 \item{sslmode}{Whether to use sslmode for the postgres or redshift connection}
 
 \item{timeout}{The number of seconds to wait for the database to connect successfully}
+
+\item{cache_table_name}{The name of the table to create inside the DuckDB file. If provided, the query result is streamed directly to DuckDB and a confirmation message is returned instead of a data frame.}
+
+\item{overwrite}{A boolean (TRUE/FALSE) to control whether to overwrite an existing table in the cache.}
 }
 \value{
-A data frame containing the results of the query
+A data frame containing the results of the query, or a confirmation message if \code{cache_table_name} is used.
 }
 \description{
 Run a SQL query on a Snowflake, Redshift or Postgres database and return the results as a data frame. See the \href{https://github.com/mermelstein/snowquery#credentials}{snowquery README} for more information on how to pass in your credentials.
@@ -60,17 +66,11 @@ result <- queryDB("SELECT * FROM my_table", conn_name='my_snowflake_dwh')
 print(result)
 }
 \dontrun{
-# You can also pass in credentials manually
-result <- queryDB("SELECT * FROM my_table",
-                   db_type='snowflake',
-                   username='my_username',
-                   password='my_password',
-                   account='my_account',
-                   database='my_database',
-                   warehouse='my_warehouse',
-                   role='my_role',
-                   timeout=30)
-print(result)
+# Stream a large query result directly to the local DuckDB cache
+queryDB("SELECT * FROM very_large_table",
+        conn_name = 'my_snowflake_dwh',
+        cache_table_name = 'large_table_local',
+        overwrite = TRUE)
 }
 
 }
