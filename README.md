@@ -6,9 +6,9 @@
 
 ## Overview
 
-Run SQL queries on Snowflake, Redshift, or a postgres database from an R script. 
+Run SQL queries on Snowflake, Redshift, Postgres, or a local DuckDB database from an R script. 
 
-This package is designed to make it easy to run SQL queries from R. It is designed to work with Snowflake, Redshift, or a postgres database. It is not designed to work with other databases, but it could be extended to do so.
+This package is designed to make it easy to run SQL queries from R. It is designed to work with Snowflake, Redshift, or a postgres database. It also now supports local caching and querying with DuckDB.
 
 ### Installation
 
@@ -43,6 +43,11 @@ That's why the `snowquery` package takes the [Snowflake python connector](https:
 For more information on using `snowquery`, please see the [package website](https://snowquery.org).
 
 ### Requirements for Use
+
+The `duckdb` R package is required for using the local caching features. You can install it from CRAN:
+```r
+install.packages("duckdb")
+```
 
 Redshift and Postgres db connections are entirely contained by this package. If querying Snowflake you must have a local python installation and the Snowflake python connector installed. If you need to install python you can do that with [Homebrew](https://brew.sh/) from the terminal:
 
@@ -86,6 +91,8 @@ my_postgres_db:
     database: 
     username: 
     password: 
+my_local_db:
+    db_type: duckdb
 
 ```
 
@@ -98,6 +105,60 @@ You are now ready to query away!
 ### Usage
 
 Load this library in your R environment with `library(snowquery)`.
+
+#### Basic Remote Query
+```r
+# Query Snowflake and get results as a data frame
+results <- queryDB("SELECT * FROM my_large_table LIMIT 1000", conn_name = "my_snowflake_dwh")
+```
+
+#### Caching a Remote Query to DuckDB
+You can cache the results of any remote query to a local DuckDB file by providing the `cache_path` and `cache_table_name` arguments. This is ideal for pulling a dataset once and analyzing it locally many times.
+
+```r
+# Run a query on Snowflake and save the results to a table named 'large_table_local'
+# in a local DuckDB file called 'analytics.duckdb'
+queryDB(
+  "SELECT * FROM my_large_table",
+  conn_name = "my_snowflake_dwh",
+  cache_table_name = "large_table_local",
+  overwrite = TRUE
+)
+# Expected output:
+# [1] "Successfully cached 24576 rows to table 'large_table_local' in 'analytics.duckdb'."
+```
+
+#### Querying the Local DuckDB Cache
+Once the data is cached, you can query it directly by setting up a `duckdb` connection in your `snowquery_creds.yaml` file.
+
+```r
+# First, add a connection to your YAML file:
+# my_local_analytics:
+#   db_type: duckdb
+
+# Now, query the local cache
+local_results <- queryDB(
+  "SELECT category, AVG(value) FROM large_table_local GROUP BY 1",
+  conn_name = "my_local_analytics"
+)
+```
+
+#### Helper Functions for DuckDB
+Two helper functions are available for interacting with your local DuckDB cache:
+
+```r
+# List all tables in your local DB
+tables <- list_cached_tables(conn_name = "my_local_analytics")
+# > [1] "large_table_local"
+
+# Get a direct DBI connection for use with other tools like dplyr
+library(dplyr)
+con <- get_duckdb_connection(conn_name = "my_local_analytics")
+
+tbl(con, "large_table_local") %>%
+  filter(category == 'A') %>%
+  summarise(total = n())
+```
 
 There is one function you need: `queryDB()`. It will take a SQL query as a string parameter and run it on the db.
 
@@ -135,3 +196,14 @@ result <- queryDB("SELECT * FROM my_table",
                    timeout=30)
 print(result)
 ```
+
+### Caching with DuckDB
+
+`snowquery` now integrates `duckdb` to allow for powerful local caching and analysis workflows. This is especially useful for reducing query costs and improving performance when working with large datasets from remote data warehouses.
+
+There are two primary ways to use the DuckDB integration:
+
+1.  **Cache Remote Query Results**: Run a query against a remote source (like Snowflake) and save the results directly into a local DuckDB database file. This creates a local replica of your data for fast, iterative analysis.
+2.  **Query a DuckDB Database Directly**: Connect to an existing DuckDB database and query its tables using the same `queryDB()` function.
+
+This allows you to build a hybrid workflow: extract data from a remote DWH once, and then perform all subsequent analysis on the fast, local DuckDB cache.
