@@ -177,43 +177,6 @@ DBI::dbGetQuery(duck_con, "SELECT * FROM recent_events LIMIT 5")
 DBI::dbDisconnect(duck_con, shutdown = TRUE)
 ```
 
-There is one function you need: `queryDB()`. It will take a SQL query as a string parameter and run it on the db.
-
-For example:
-
-```R
-library(snowquery)
-
-query <- "SELECT * FROM MY_AWESOME_TABLE"
-result_dataframe <- queryDB(query, conn_name='my_snowflake_dwh')
-print(result_dataframe)
-```
-
-or 
-
-```R
-library(snowquery)
-
-queryDB("SELECT * FROM MY_AWESOME_TABLE", conn_name='my_snowflake_dwh')
-```
-
-or
-
-```R
-library(snowquery)
-# You can also pass in credentials manually
-result <- queryDB("SELECT * FROM my_table",
-                   db_type='snowflake',
-                   username='my_username',
-                   password='my_password',
-                   account='my_account',
-                   database='my_database',
-                   warehouse='my_warehouse',
-                   role='my_role',
-                   timeout=30)
-print(result)
-```
-
 ### DuckDB Caching Notes
 
 Workflow:
